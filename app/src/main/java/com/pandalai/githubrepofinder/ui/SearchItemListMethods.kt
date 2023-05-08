@@ -2,7 +2,7 @@ package com.pandalai.githubrepofinder.ui
 
 import com.pandalai.githubrepofinder.models.GithubSearchItem
 
-interface MainView {
+interface SearchItemListMethods {
 
     fun changeMessage(message: String)
 

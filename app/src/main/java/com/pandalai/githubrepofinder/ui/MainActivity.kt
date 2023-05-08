@@ -1,27 +1,30 @@
 package com.pandalai.githubrepofinder.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.pandalai.githubrepofinder.R
+import com.pandalai.githubrepofinder.api.RestClient
 import com.pandalai.githubrepofinder.databinding.ActivityMainBinding
 import com.pandalai.githubrepofinder.databinding.LayoutBottomSheetFilterBinding
 import com.pandalai.githubrepofinder.models.GithubSearchItem
-import com.pandalai.githubrepofinder.presenter.MainPresenterImpl
+import com.pandalai.githubrepofinder.repositories.GithubRepository
 import com.pandalai.githubrepofinder.utils.MiscUtils
 import com.pandalai.githubrepofinder.utils.viewBinding
+import com.pandalai.githubrepofinder.viewmodelfactories.GithubSearchViewModelFactory
+import com.pandalai.githubrepofinder.viewmodels.GithubSearchViewModel
 
-class MainActivity  : AppCompatActivity(), MainView, View.OnClickListener, GithubSearchItemAdapter.OnLoadMoreListener {
+class MainActivity  : AppCompatActivity(), SearchItemListMethods, View.OnClickListener, GithubSearchItemAdapter.OnLoadMoreListener {
     val binding by viewBinding(ActivityMainBinding::inflate)
     private lateinit var bottomSheetBinding : LayoutBottomSheetFilterBinding
-    private lateinit var mainPresenterImpl: MainPresenterImpl
     private lateinit var githubSearchItemAdapter: GithubSearchItemAdapter
+    private lateinit var viewModel: GithubSearchViewModel
 
     private lateinit var dialog: BottomSheetDialog
 
@@ -31,23 +34,41 @@ class MainActivity  : AppCompatActivity(), MainView, View.OnClickListener, Githu
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-
+        val retrofitService = RestClient.service
+        val mainRepository = GithubRepository(retrofitService)
+        viewModel = ViewModelProvider(this, GithubSearchViewModelFactory(this, mainRepository))[GithubSearchViewModel::class.java]
         binding.ivSearch.setOnClickListener{
             if(binding.etSearch.text.isNullOrEmpty()){
                 Toast.makeText(this, resources.getString(R.string.search_field_not_empty), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            mainPresenterImpl.searchRepos(binding.etSearch.text.toString(), sortBy, orderBy)
+            viewModel.searchRepos(binding.etSearch.text.toString(), sortBy, orderBy)
         }
         binding.ivFilter.setOnClickListener{
             dialog.show()
         }
+        setObservers()
         setRecyclerView()
         setBottomSheet()
 
-        mainPresenterImpl = MainPresenterImpl(this)
     }
 
+    private fun setObservers(){
+        viewModel.errorMessage.observe(this) {
+            Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+        }
+        viewModel.getRepoResponse.observe(this) {
+            viewModel.manageResponse(it)
+        }
+
+        viewModel.loading.observe(this) {
+            if(it){
+                binding.progress.visibility = View.VISIBLE
+            } else{
+                binding.progress.visibility = View.GONE
+            }
+        }
+    }
     private fun setRecyclerView() {
         binding.rvSearchResult.itemAnimator = DefaultItemAnimator()
         binding.rvSearchResult.layoutManager = LinearLayoutManager(this)
@@ -76,7 +97,7 @@ class MainActivity  : AppCompatActivity(), MainView, View.OnClickListener, Githu
         dialog = BottomSheetDialog(this)
         dialog.setContentView(bottomSheetBinding.root)
         dialog.setOnCancelListener {
-            mainPresenterImpl.onDialogCancel()
+            viewModel.onDialogCancel()
         }
     }
 
@@ -154,18 +175,19 @@ class MainActivity  : AppCompatActivity(), MainView, View.OnClickListener, Githu
                     return
                 }
                 dialog.dismiss()
-                mainPresenterImpl.onFilterApply()
+                viewModel.onFilterApply()
                 binding.ivSearch.performClick()
             }
             R.id.tvClear -> {
                 dialog.dismiss()
-                mainPresenterImpl.onFilterClear()
+                viewModel.onFilterClear()
+                binding.ivSearch.performClick()
             }
         }
     }
 
     override fun onLoadMore() {
-        mainPresenterImpl.onLoadMore()
+        viewModel.onLoadMore()
     }
 
 
