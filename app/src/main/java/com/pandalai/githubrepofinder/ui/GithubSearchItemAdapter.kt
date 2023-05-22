@@ -1,16 +1,22 @@
 package com.pandalai.githubrepofinder.ui
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.pandalai.githubrepofinder.R
+import com.pandalai.githubrepofinder.databinding.DialogGithubSearchCardBinding
 import com.pandalai.githubrepofinder.models.GithubSearchItem
 import com.pandalai.githubrepofinder.databinding.ItemGithubSearchCardBinding
+import com.pandalai.githubrepofinder.models.RepoModel
 import com.squareup.picasso.Picasso
 
-class GithubSearchItemAdapter(recyclerView: RecyclerView) : RecyclerView.Adapter<GithubSearchItemAdapter.ViewHolder>(){
+class GithubSearchItemAdapter(recyclerView: RecyclerView, val context: Context) : RecyclerView.Adapter<GithubSearchItemAdapter.ViewHolder>(){
     private var mRepositories = mutableListOf<GithubSearchItem>()
+    private lateinit var dialogBinding : DialogGithubSearchCardBinding
+    private lateinit var repoModel : RepoModel
 
     private var loading: Boolean = false
 
@@ -19,6 +25,7 @@ class GithubSearchItemAdapter(recyclerView: RecyclerView) : RecyclerView.Adapter
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemGithubSearchCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        dialogBinding = DialogGithubSearchCardBinding.inflate(LayoutInflater.from(parent.context))
         return ViewHolder(binding)
     }
 
@@ -35,7 +42,42 @@ class GithubSearchItemAdapter(recyclerView: RecyclerView) : RecyclerView.Adapter
                 .placeholder(R.mipmap.ic_launcher)
                 .error(R.mipmap.ic_launcher)
                 .into(ivProfile)
+            cvItemSearch.setOnClickListener {
+                if(dialogBinding.root.parent != null){
+                    (dialogBinding.root.parent as ViewGroup).removeAllViews()
+                }
+                val alert = setDialogBox(mRepositories[position], root.context)
+                alert.show()
+            }
         }
+    }
+
+    private fun setDialogBox(githubSearchItem: GithubSearchItem, context: Context): AlertDialog {
+        repoModel = RepoModel(githubSearchItem.fullName, githubSearchItem.owner?.login, githubSearchItem.stargazersCount, githubSearchItem.description, githubSearchItem.language, githubSearchItem.owner?.avatarUrl)
+        val builder = AlertDialog.Builder(context)
+        val alert = builder.create()
+        val view = dialogBinding
+        view.tvGithubRepoName.text =  githubSearchItem.fullName
+        view.tvGithubUserName.text = context.getString(R.string.repoOwnerName, repoModel.repoFullName)
+        view.tvGithubStars.text =  repoModel.stars.toString()
+        view.tvGithubRepoDescription.text = context.getString(R.string.repoDescription, repoModel.repoDescription)
+        view.tvGithubRepoLanguages.text = context.getString(R.string.repoLanguages, repoModel.languages)
+        Picasso.get()
+            .load(repoModel.userImage)
+            .placeholder(R.mipmap.ic_launcher)
+            .error(R.mipmap.ic_launcher)
+            .into(view.ivProfile)
+//        val dialogText = ("Repo Name: ").plus(repoModel.repoFullName).plus("\n")
+//            .plus(this.context.getString(R.string.repoOwnerName, repoModel.userName)).plus("\n")
+//            .plus("Star Count: "+repoModel.stars).plus("\n")
+//            .plus(this.context.getString(R.string.repoDescription, repoModel.repoDescription)).plus("\n")
+//            .plus(this.context.getString(R.string.repoLanguages, repoModel.languages)).plus("\n")
+        alert.setView(dialogBinding.root)
+        alert.setCanceledOnTouchOutside(false)
+        view.tvClose.setOnClickListener {
+            alert.cancel()
+        }
+        return alert
     }
 
     init {

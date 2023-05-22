@@ -73,7 +73,7 @@ class MainActivity  : AppCompatActivity(), SearchItemListMethods, View.OnClickLi
         binding.rvSearchResult.itemAnimator = DefaultItemAnimator()
         binding.rvSearchResult.layoutManager = LinearLayoutManager(this)
 
-        githubSearchItemAdapter = GithubSearchItemAdapter(binding.rvSearchResult)
+        githubSearchItemAdapter = GithubSearchItemAdapter(binding.rvSearchResult, this)
         githubSearchItemAdapter.onLoadMoreListener = this
 
         binding.rvSearchResult.adapter = githubSearchItemAdapter
