@@ -1,14 +1,33 @@
 # GithubRepoFinder
-POC implementation of Github Search API
 
-//Github Search API implementation
-API Link: https://developer.github.com/v3/search/
-Architecture: MVVM
-Features:
--- Search field to search and fetch public repos that match that particular search result
-- Result card contains following data:
--Avatar, Repo name, Stars, Description, language
--- Filter Options to sort the results by the following param:
--Stars, watchers count, score, name,created_at, updated_at.
+A GitHub repository search app in Kotlin — clean MVVM proof-of-concept built around the [GitHub Search API](https://docs.github.com/en/rest/search).
 
-Created, executed & tested on Android Studio Flamingo | 2022.2.1 Patch 1
+## Features
+
+- Search GitHub repositories against the Search API
+- Connectivity-aware UI — a `ConnectivityLiveData` wrapper observes network state and gates requests
+- Explicit loading / success / error / empty states
+- Graceful API error parsing (rate limits, validation errors)
+
+## Stack
+
+| Layer | Tech |
+|---|---|
+| UI | XML Views + ViewBinding, Material Components |
+| Presentation | ViewModel + LiveData, lifecycle-aware collection |
+| Concurrency | Kotlin Coroutines |
+| Network | Retrofit 2 + Gson, OkHttp logging interceptor |
+| Pattern | MVVM + Repository |
+
+## Structure
+
+```
+ui/                  → MainActivity, adapters, loading states
+viewmodels/          → GithubSearchViewModel
+repositories/        → GithubRepository (single source of truth)
+api/                 → Retrofit service, REST client
+models/              → search response + error models
+utils/               → connectivity, keyboard, view-binding helpers
+```
+
+> 📌 For my current production-grade work — Compose Multiplatform, sensor-fusion location tracking, offline-first Room — see [MileTrackerDemo](https://github.com/darkpandawarrior/MileTrackerDemo).
