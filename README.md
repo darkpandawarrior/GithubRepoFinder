@@ -1,13 +1,13 @@
 # GithubRepoFinder
 
-A GitHub repository search app in Kotlin — clean MVVM proof-of-concept built around the [GitHub Search API](https://docs.github.com/en/rest/search).
+A 2023 GitHub repository search proof of concept in Kotlin, built around the [GitHub Search API](https://docs.github.com/en/rest/search).
 
 ## Features
 
 - Search GitHub repositories against the Search API
-- Connectivity-aware UI — a `ConnectivityLiveData` wrapper observes network state and gates requests
-- Explicit loading / success / error / empty states
-- Graceful API error parsing (rate limits, validation errors)
+- An online check before each search request
+- A loading spinner, results list, error toast and empty-result message
+- Sorting and pagination controls
 
 ## Stack
 
@@ -17,7 +17,7 @@ A GitHub repository search app in Kotlin — clean MVVM proof-of-concept built a
 | Presentation | ViewModel + LiveData, lifecycle-aware collection |
 | Concurrency | Kotlin Coroutines |
 | Network | Retrofit 2 + Gson, OkHttp logging interceptor |
-| Pattern | MVVM + Repository |
+| Pattern | MVVM + a thin API repository |
 
 ## Structure
 
@@ -30,4 +30,4 @@ models/              → search response + error models
 utils/               → connectivity, keyboard, view-binding helpers
 ```
 
-> 📌 For my current production-grade work — Compose Multiplatform, sensor-fusion location tracking, offline-first Room — see [MileTrackerDemo](https://github.com/darkpandawarrior/MileTrackerDemo).
+For a newer Kotlin Multiplatform project with Compose UI, local data and a browser preview, see [Doori](https://github.com/darkpandawarrior/Doori).
