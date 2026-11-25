@@ -36,3 +36,6 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Agent tooling (local only)
+AGENTS.md
